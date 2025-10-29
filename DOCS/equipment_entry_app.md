@@ -6,8 +6,7 @@ The **Equipment Entry Assistant** is a Django application designed to streamline
 
 The assistant integrates directly into the HxGN EAM user interface through an extensible framework. The data flows as follows:
 
-*Note: Please add the architecture diagram for this app to the `DOCS/images` folder as `equipment_entry_architecture.jpg` for it to be displayed here.*
-![Equipment Entry Architecture](./images/equipment_entry_architecture.jpg)
+![Equipment Entry Architecture](./images/21%20Tech%20Use%20Cases-Generative%20Asset%20Creation.jpg)
 
 1. **User Input**: An Asset Manager begins creating a new asset in HxGN EAM. They provide initial data, such as an asset description (e.g., "Air Handler Unit 5 Ton"), and select a field they want the AI to predict (e.g., "Category Code").
 2. **Request to Django**: The EAM framework sends a request to the Django backend. This request includes the asset description, the target field to predict, and any values the user has already entered for other fields.

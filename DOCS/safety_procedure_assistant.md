@@ -6,8 +6,7 @@ The **Safety Procedure Assistant** is a specialized Django application that anal
 
 While this application follows the same general PDF-processing architecture as the Maintenance Assistant, its goal is different. Instead of creating work orders, it populates the **Safety module** of EAM. It reads unstructured incident reports and creates structured **Hazards**, **Precautions**, and **Safety Matrix Links** that connect them to specific equipment.
 
-*Note: Please add the architecture diagram for this app to the `DOCS/images` folder as `safety_procedure_assistant_architecture.jpg` for it to be displayed here.*
-![Safety Procedure Assistant Architecture](./images/safety_procedure_assistant_architecture.jpg)
+![Safety Procedure Assistant Architecture](./images/21%20Tech%20Use%20Cases-Safety.jpg)
 
 ## Data Flow Differences
 

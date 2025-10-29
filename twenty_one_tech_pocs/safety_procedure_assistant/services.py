@@ -24,7 +24,7 @@ from .schemas import (
     PrecautionTimingChoices,
     IncidentAnalysisOutput
 )
-from common.eam_api import EAMApiService
+from twenty_one_tech_pocs.common.eam_api import EAMApiService
 
 logger = logging.getLogger(__name__)
 

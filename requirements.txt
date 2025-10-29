@@ -1,0 +1,31 @@
+# Django and REST Framework
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+
+# Environment and Configuration
+python-dotenv==1.0.0
+
+# Database
+psycopg2-binary==2.9.9
+
+# Web Server
+gunicorn==21.2.0
+
+# HTTP Requests
+requests==2.31.0
+
+# Data Validation (updated to be compatible with LangChain)
+pydantic>=2.7.4,<3.0.0
+
+# LangChain Core (minimal LangChain setup)
+langchain==0.3.8
+langchain-core>=0.3.0,<0.4.0
+langchain-openai==0.2.9
+langchain-community==0.3.8
+
+# Document Processing (only if you're using UnstructuredPDFLoader)
+unstructured[pdf]==0.15.13
+
+# Vector Database (only if using Elasticsearch)
+elasticsearch==8.14.0 

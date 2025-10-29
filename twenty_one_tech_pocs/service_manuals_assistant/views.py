@@ -18,7 +18,7 @@ except ImportError:
 
 from .schemas import TaskPlan # Changed from MaintenanceSchedule
 from .services import ServiceManualsAssistantService # Changed service
-from common import EAMApiService, LLMFactory, ConfigManager
+from twenty_one_tech_pocs.common import EAMApiService, LLMFactory, ConfigManager
 
 
 class ProcessServiceManualDocumentView(APIView): # Changed class name

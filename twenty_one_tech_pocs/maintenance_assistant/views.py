@@ -9,7 +9,7 @@ from django.core.files.base import ContentFile
 
 from .schemas import MaintenanceSchedule
 from .services import MaintenanceAssistantService
-from common import EAMApiService, LLMFactory, ConfigManager
+from twenty_one_tech_pocs.common import EAMApiService, LLMFactory, ConfigManager
 
 
 class ProcessMaintenanceDocumentView(APIView):

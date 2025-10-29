@@ -1,0 +1,5 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "python manage.py migrate && gunicorn twenty_one_tech_pocs.twenty_one_tech_pocs.wsgi:application --bind 0.0.0.0:$PORT" 

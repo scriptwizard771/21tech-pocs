@@ -8,7 +8,7 @@ The core of this project is a Django backend that serves as an "AI Development" 
 
 ### Architecture
 
-![Architecture Diagram](/DOCS/images/architecture.png)
+![Architecture Diagram](./DOCS/images/21%20Tech%20Use%20Cases-Template.jpg)
 
 ### Key Technologies
 

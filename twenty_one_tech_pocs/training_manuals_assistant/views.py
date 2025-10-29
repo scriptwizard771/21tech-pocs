@@ -11,8 +11,8 @@ from typing import Optional
 
 from .schemas import TrainingManualQualificationExtraction
 from .services import TrainingManualsAssistantService
-from common import LLMFactory, ConfigManager
-from common.eam_api import EAMApiService
+from twenty_one_tech_pocs.common import LLMFactory, ConfigManager
+from twenty_one_tech_pocs.common.eam_api import EAMApiService
 
 class ProcessTrainingManualView(APIView):
     def __init__(self):

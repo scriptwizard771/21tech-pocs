@@ -13,7 +13,7 @@ from typing import List, Optional # Keep Optional if service can return None
 # Updated schema imports
 from .schemas import IncidentAnalysisOutput, Hazard, Precaution, EquipmentDetails 
 from .services import SafetyProcedureAssistantService
-from common import EAMApiService, LLMFactory, ConfigManager
+from twenty_one_tech_pocs.common import EAMApiService, LLMFactory, ConfigManager
 
 class ProcessIncidentReportView(APIView):
     def __init__(self):

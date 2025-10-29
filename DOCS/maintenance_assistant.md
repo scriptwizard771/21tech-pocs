@@ -6,8 +6,7 @@ The **Maintenance Assistant** application is designed to automate the creation o
 
 This assistant follows a PDF-processing pattern that serves as a template for other similar applications in the project. The primary goal is to convert unstructured text from a PDF into structured, actionable data within the EAM system.
 
-*Note: Please add the architecture diagram for this app to the `DOCS/images` folder as `maintenance_assistant_architecture.jpg` for it to be displayed here.*
-![Maintenance Assistant Architecture](./images/maintenance_assistant_architecture.jpg)
+![Maintenance Assistant Architecture](./images/21%20Tech%20Use%20Cases-PM%20Schedule%20Generation.jpg)
 
 1. **User Input**: A Maintenance Manager provides the document code of a Maintenance Procedure (MP) PDF that is already stored in HxGN EAM.
 2. **Request to Django**: The EAM extensible framework sends a request to the Django backend containing the `document_code`. The request can also specify whether the extracted data should be automatically created in EAM.
