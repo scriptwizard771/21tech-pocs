@@ -5,25 +5,17 @@ FROM python:3.9-slim-buster
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# Install system-level dependencies required for unstructured to process various file types.
-# This is based on the requirements for a full unstructured installation.
+# Install minimal system-level dependencies.
+# PyMuPDF is largely self-contained, so we don't need the extensive list
+# that was required for unstructured.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # For filetype detection
-    libmagic1 \
-    # For PDF processing
-    poppler-utils \
-    # For image processing and OCR
-    tesseract-ocr \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    # For other document types
-    libreoffice \
-    pandoc \
     # For building some python packages
-    curl \
     gcc \
     g++ \
-    unzip \
+    # For SSL certificate generation
+    openssl \
+    # For python-magic file type detection
+    libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory in the container
@@ -33,17 +25,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Unstructured looks for NLTK data in a hardcoded relative path.
-# This RUN command downloads the necessary 'punkt' data to the exact location
-# the library expects, preventing runtime download errors.
-RUN UNSTRUCTURED_NLTK_PATH=/usr/local/lib/python3.9/site-packages/unstructured/nlp/nltk_data && \
-    mkdir -p ${UNSTRUCTURED_NLTK_PATH}/tokenizers && \
-    curl -L "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt.zip" -o "${UNSTRUCTURED_NLTK_PATH}/tokenizers/punkt.zip" && \
-    unzip "${UNSTRUCTURED_NLTK_PATH}/tokenizers/punkt.zip" -d "${UNSTRUCTURED_NLTK_PATH}/tokenizers/" && \
-    rm "${UNSTRUCTURED_NLTK_PATH}/tokenizers/punkt.zip"
-
 # Copy the rest of the application's code
 COPY . .
+
+# Generate SSL certificates for HTTPS
+RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes \
+    -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost"
 
 # Expose the port the app runs on
 EXPOSE 8001

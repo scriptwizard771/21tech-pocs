@@ -16,8 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.http import HttpResponse
+
+
+def robots_txt(request):
+    return HttpResponse("User-agent: *\\nDisallow: /", content_type="text/plain")
+
 
 urlpatterns = [
+    path("robots.txt", robots_txt),
+    path("favicon.ico", lambda request: HttpResponse(status=204)),
+    path("", lambda request: HttpResponse(status=204)),
     path('admin/', admin.site.urls),
     path('api/equipment-entries/', include('twenty_one_tech_pocs.equipment_entry_app.urls')),
     path('api/maintenance/', include('twenty_one_tech_pocs.maintenance_assistant.urls')),

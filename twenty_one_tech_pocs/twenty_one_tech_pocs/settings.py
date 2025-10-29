@@ -24,13 +24,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure--xqh=gz5-=74^&5o!ol&j5ma-7=^&_zb2k77j!*^kkn_u+g3)^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+DEBUG = True
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-
-# Railway specific
-if 'RAILWAY_ENVIRONMENT' in os.environ:
-    ALLOWED_HOSTS.append('.railway.app')
+ALLOWED_HOSTS = [
+    "chief-unified-moccasin.ngrok-free.app",
+    "localhost",
+    "54.219.76.120",
+]
 
 
 # Application definition
@@ -44,10 +44,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "corsheaders",
     'rest_framework',
-    'twenty_one_tech_pocs.maintenance_assistant',
-    'twenty_one_tech_pocs.service_manuals_assistant',
-    'twenty_one_tech_pocs.safety_procedure_assistant',
-    'twenty_one_tech_pocs.training_manuals_assistant',
+    'django_extensions',
+    'maintenance_assistant',
+    'service_manuals_assistant',
+    'safety_procedure_assistant',
+    'training_manuals_assistant',
 ]
 
 MIDDLEWARE = [
@@ -148,6 +149,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Django REST Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [],  # Disable authentication globally
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Allow any user
+    ],
+}
 
 CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins (for testing)
 
@@ -186,3 +194,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Maximum file upload size (5MB)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+
+# Production security settings (when behind reverse proxy)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = False  # Nginx handles HTTP to HTTPS redirect
+USE_TZ = True

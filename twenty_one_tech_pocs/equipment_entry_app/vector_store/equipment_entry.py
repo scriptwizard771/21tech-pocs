@@ -1,4 +1,5 @@
 from .elasticsearch_vector_store import ElasticSearchVectorStore
+import os
 
 
 class EquipmentEntryElasticSearch(ElasticSearchVectorStore):
@@ -538,10 +539,9 @@ class EquipmentEntryElasticSearch(ElasticSearchVectorStore):
             }
         }
 
-    def __init__(
-        self, es_host: str = "http://localhost:9201", index_name: str = "assets_index"
-    ):
-        super().__init__(es_host, index_name)
+    def __init__(self, index_name: str = "assets_index"):
+        es_host = os.environ.get("ES_URL", "http://localhost:9201")
+        super().__init__(es_host=es_host, index_name=index_name)
 
     def fuzzy_search(self, user_input: str, label_key: str):
         # Get the Elasticsearch attribute for the provided label key
