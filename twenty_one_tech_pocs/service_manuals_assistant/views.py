@@ -7,7 +7,14 @@ import requests
 import base64
 from django.core.files.base import ContentFile
 from typing import List # Added for type hinting
-import magic
+
+# Try to import magic, fall back to signature-based detection if not available
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+    print("Warning: python-magic not available, falling back to signature-based file detection")
 
 from .schemas import TaskPlan # Changed from MaintenanceSchedule
 from .services import ServiceManualsAssistantService # Changed service
@@ -36,29 +43,33 @@ class ProcessServiceManualDocumentView(APIView): # Changed class name
         Detect file type based on file content using magic numbers.
         Returns the file extension and MIME type.
         """
-        try:
-            # Get MIME type from file content
-            mime_type = magic.from_buffer(file_bytes, mime=True)
-            
-            # Map common MIME types to extensions
-            mime_to_extension = {
-                'application/pdf': 'pdf',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
-                'application/vnd.ms-excel': 'xls',
-                'application/msword': 'doc',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-                'text/plain': 'txt',
-                'image/jpeg': 'jpg',
-                'image/png': 'png',
-                'image/gif': 'gif',
-            }
-            
-            extension = mime_to_extension.get(mime_type, 'pdf')  # Default to pdf
-            
-            return extension, mime_type
-            
-        except Exception as e:
-            # Fallback: try to detect based on file signature bytes
+        if MAGIC_AVAILABLE:
+            try:
+                # Get MIME type from file content
+                mime_type = magic.from_buffer(file_bytes, mime=True)
+                
+                # Map common MIME types to extensions
+                mime_to_extension = {
+                    'application/pdf': 'pdf',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+                    'application/vnd.ms-excel': 'xls',
+                    'application/msword': 'doc',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+                    'text/plain': 'txt',
+                    'image/jpeg': 'jpg',
+                    'image/png': 'png',
+                    'image/gif': 'gif',
+                }
+                
+                extension = mime_to_extension.get(mime_type, 'pdf')  # Default to pdf
+                
+                return extension, mime_type
+                
+            except Exception as e:
+                # Fallback: try to detect based on file signature bytes
+                return self.detect_by_signature(file_bytes)
+        else:
+            # Magic not available, use signature-based detection
             return self.detect_by_signature(file_bytes)
 
     def detect_by_signature(self, file_bytes):
