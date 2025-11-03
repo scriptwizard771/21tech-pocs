@@ -28,4 +28,7 @@ langchain-community==0.3.8
 unstructured[pdf]==0.15.13
 
 # Vector Database (only if using Elasticsearch)
-elasticsearch==8.14.0 
+elasticsearch==8.14.0
+
+# File type detection
+python-magic==0.4.27

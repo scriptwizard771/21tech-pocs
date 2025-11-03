@@ -38,4 +38,3 @@ openpyxl==3.1.2
 elasticsearch==8.14.0
 
 # File Type Detection (alternative with binaries included)
-python-magic-bin==0.4.14

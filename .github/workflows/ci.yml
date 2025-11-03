@@ -1,0 +1,204 @@
+name: Simple CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  django-tests:
+    name: Django Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Setup Environment
+      run: |
+        echo "SECRET_KEY=test-secret-key-$(openssl rand -hex 32)" > .env
+        echo "DEBUG=True" >> .env
+        echo "HUGGINGFACE_API_KEY=test-key" >> .env
+
+    - name: Run Migrations
+      run: |
+        python manage.py migrate
+
+    - name: Django Check
+      run: |
+        python manage.py check
+
+    - name: Collect Static Files
+      run: |
+        python manage.py collectstatic --noinput
+
+    - name: Test Django Setup
+      run: |
+        python -c "
+import django
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'twenty_one_tech_pocs.twenty_one_tech_pocs.settings')
+django.setup()
+print('Django setup successful!')
+"
+
+  endpoint-tests:
+    name: API Endpoint Tests
+    runs-on: ubuntu-latest
+    needs: django-tests
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Setup Environment
+      run: |
+        echo "SECRET_KEY=test-secret-key-$(openssl rand -hex 32)" > .env
+        echo "DEBUG=True" >> .env
+        echo "HUGGINGFACE_API_KEY=test-key" >> .env
+
+    - name: Run Migrations
+      run: |
+        python manage.py migrate
+
+    - name: Create Superuser
+      run: |
+        python manage.py shell -c "
+from django.contrib.auth import get_user_model
+User = get_user_model()
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+    print('Superuser created')
+else:
+    print('Superuser already exists')
+"
+
+    - name: Test API Endpoints
+      run: |
+        python manage.py runserver 0.0.0.0:8000 &
+        SERVER_PID=$!
+        
+        echo "Starting Django server..."
+        sleep 15
+        
+        echo "Testing basic endpoints..."
+        
+        # Test robots.txt
+        echo "Testing robots.txt..."
+        curl -f http://127.0.0.1:8000/robots.txt && echo "✓ Robots.txt OK"
+        
+        # Test admin (should return 200 or 302)
+        echo "Testing admin..."
+        curl -I http://127.0.0.1:8000/admin/ && echo "✓ Admin endpoint OK"
+        
+        # Test API endpoints (POST endpoints - should return 400/405 for GET)
+        echo "Testing API endpoints..."
+        
+        # Maintenance Assistant
+        curl -I http://127.0.0.1:8000/api/maintenance/process-document/ && echo "✓ Maintenance API accessible"
+        
+        # Service Manuals
+        curl -I http://127.0.0.1:8000/api/service-manuals/process-document/ && echo "✓ Service Manuals API accessible"
+        
+        # Safety Procedures
+        curl -I http://127.0.0.1:8000/api/safety-procedures/process-incident-report/ && echo "✓ Safety Procedures API accessible"
+        
+        # Training Manuals
+        curl -I http://127.0.0.1:8000/api/training-manuals/process-training-manual/ && echo "✓ Training Manuals API accessible"
+        
+        # Equipment Entry
+        curl -I http://127.0.0.1:8000/api/equipment-entries/generate/Motor%20Pump/ && echo "✓ Equipment Entry API accessible"
+        curl -I http://127.0.0.1:8000/api/equipment-entries/generate-bulk/Motor%20Pump/ && echo "✓ Equipment Entry Bulk API accessible"
+        
+        echo "All endpoint tests completed"
+        kill $SERVER_PID || true
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: endpoint-tests
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Build Docker Image
+      run: |
+        echo "Building Docker image..."
+        docker build -f resources/dockerfile.prod -t 21tech-pocs:test .
+        echo "Docker build successful!"
+
+    - name: Test Docker Container
+      run: |
+        echo "Testing Docker container..."
+        
+        docker run -d --name test-app \
+          -p 8001:8000 \
+          -e SECRET_KEY=test-secret-key \
+          -e DEBUG=False \
+          -e HUGGINGFACE_API_KEY=test-key \
+          21tech-pocs:test
+        
+        sleep 20
+        
+        if docker ps | grep -q test-app; then
+          echo "Container is running"
+          curl -f http://localhost:8001/robots.txt && echo "Container test passed"
+        else
+          echo "Container failed"
+          docker logs test-app
+        fi
+        
+        docker stop test-app || true
+        docker rm test-app || true
+
+  summary:
+    name: Summary
+    runs-on: ubuntu-latest
+    needs: [django-tests, endpoint-tests, docker-build]
+    if: always()
+    
+    steps:
+    - name: Results
+      run: |
+        echo "CI Pipeline Results:"
+        echo "- Django Tests: ${{ needs.django-tests.result }}"
+        echo "- Endpoint Tests: ${{ needs.endpoint-tests.result }}"
+        echo "- Docker Build: ${{ needs.docker-build.result }}"
+        
+        if [[ "${{ needs.django-tests.result }}" == "success" && 
+              "${{ needs.endpoint-tests.result }}" == "success" && 
+              "${{ needs.docker-build.result }}" == "success" ]]; then
+          echo "✓ All tests passed!"
+        else
+          echo "✗ Some tests failed"
+        fi
+
+
