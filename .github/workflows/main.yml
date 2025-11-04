@@ -25,7 +25,6 @@ jobs:
           git fetch origin
           git reset --hard origin/${{ github.ref_name }}
           docker-compose -f resources/docker-compose.prod.yml down || true
-          docker-compose -f resources/docker-compose.prod.yml build --no-cache
-          docker-compose -f resources/docker-compose.prod.yml up -d
+          docker-compose -f resources/docker-compose.prod.yml up --build -d
           docker system prune -af
           docker-compose -f resources/docker-compose.prod.yml ps
