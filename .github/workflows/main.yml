@@ -1,7 +1,7 @@
 name: CI/CD Deploy to AWS EC2
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   workflow_dispatch:
 jobs:
   deploy:
@@ -9,6 +9,7 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      
     - name: Deploy and build on AWS EC2
       uses: appleboy/ssh-action@v1.1.0
       with:
@@ -16,17 +17,15 @@ jobs:
         username: ${{ secrets.AWS_USERNAME }}
         key: ${{ secrets.AWS_PRIVATE_KEY }}
         script: |
-          echo "Pulling latest code..."
-          cd /path/to/your/project
-          git pull origin main
-          echo "Building and starting containers..."
-          docker-compose -f docker-compose.prod.yml down
-          docker-compose -f docker-compose.prod.yml build --no-cache
-          docker-compose -f docker-compose.prod.yml up -d
-          echo "Cleaning up unused resources..."
+          PROJECT_PATH="/home/${{ secrets.AWS_USERNAME }}/21tech-pocs"
+          if [ ! -d "$PROJECT_PATH" ]; then
+            git clone https://github.com/${{ github.repository }}.git $PROJECT_PATH
+          fi
+          cd $PROJECT_PATH
+          git fetch origin
+          git reset --hard origin/${{ github.ref_name }}
+          docker-compose -f resources/docker-compose.prod.yml down || true
+          docker-compose -f resources/docker-compose.prod.yml build --no-cache
+          docker-compose -f resources/docker-compose.prod.yml up -d
           docker system prune -af
-
-
-
-
-
+          docker-compose -f resources/docker-compose.prod.yml ps
