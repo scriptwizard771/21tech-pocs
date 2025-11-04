@@ -1,11 +1,6 @@
 services:
   django_app:
-    build: 
-      context: ..
-      dockerfile: resources/dockerfile.prod
-      platform: linux/amd64
-      args:
-        BUILDKIT_INLINE_CACHE: 1
+    image: django_app:latest
     container_name: django_app
     env_file:
       - ../.env
@@ -15,7 +10,6 @@ services:
     depends_on:
       - elasticsearch
     volumes:
-      - ../twenty_one_tech_pocs:/app/twenty_one_tech_pocs
       - static_volume:/app/twenty_one_tech_pocs/staticfiles
       - media_volume:/app/twenty_one_tech_pocs/media
       - temp_docs_volume:/app/twenty_one_tech_pocs/temp_documents
