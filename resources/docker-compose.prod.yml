@@ -3,6 +3,7 @@ services:
     build: 
       context: ..
       dockerfile: resources/dockerfile.prod
+      platform: linux/amd64
       args:
         BUILDKIT_INLINE_CACHE: 1
     container_name: django_app
