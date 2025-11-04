@@ -32,7 +32,7 @@ jobs:
         key: ${{ secrets.AWS_PRIVATE_KEY }}
         port: ${{ secrets.AWS_PORT }}
         source: "django_app.tar"
-        target: "/home/${{ secrets.AWS_USERNAME }}/django_app.tar"
+        target: "/home/${{ secrets.AWS_USERNAME }}/"
   deploy:
     name: Deploy Docker Compose on EC2
     runs-on: ubuntu-latest
