@@ -1,5 +1,5 @@
 # Production Dockerfile
-FROM python:3.11-slim
+FROM python:3.9-slim-bullseye
 # Set environment variables for Python
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
