@@ -1,5 +1,5 @@
 # Production Dockerfile
-FROM python:3.9-slim-buster
+FROM python:3.9-slim-bullseye
 
 # Set environment variables for Python
 ENV PYTHONUNBUFFERED=1 \
@@ -39,4 +39,4 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Use Gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "twenty_one_tech_pocs.wsgi:application"] 
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "twenty_one_tech_pocs.wsgi:application"]

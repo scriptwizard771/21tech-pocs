@@ -29,6 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "chief-unified-moccasin.ngrok-free.app",
     "localhost",
+    "127.0.0.1",
     "54.219.76.120",
 ]
 
@@ -47,8 +48,10 @@ INSTALLED_APPS = [
     'django_extensions',
     'maintenance_assistant',
     'service_manuals_assistant',
-    'safety_procedure_assistant',
+    'safety_procedure_assistant', 
     'training_manuals_assistant',
+    'equipment_entry_app',
+    'common',
 ]
 
 MIDDLEWARE = [
@@ -62,7 +65,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'twenty_one_tech_pocs.twenty_one_tech_pocs.urls'
+ROOT_URLCONF = 'twenty_one_tech_pocs.urls'
 
 TEMPLATES = [
     {
@@ -80,7 +83,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'twenty_one_tech_pocs.twenty_one_tech_pocs.wsgi.application'
+WSGI_APPLICATION = 'twenty_one_tech_pocs.wsgi.application'
 
 
 # Database

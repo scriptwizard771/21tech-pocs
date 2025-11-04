@@ -1,6 +1,6 @@
 import os
 
-from twenty_one_tech_pocs.common import LLMFactory, LLMsEnum, PromptFactory
+from common import LLMFactory, LLMsEnum, PromptFactory
 from dotenv import load_dotenv
 from rest_framework import status
 from rest_framework.response import Response

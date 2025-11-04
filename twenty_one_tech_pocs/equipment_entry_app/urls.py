@@ -1,5 +1,5 @@
 from django.urls import path
-from twenty_one_tech_pocs.equipment_entry_app.views import GenerateAssetView, GenerateBulkAssetView
+from equipment_entry_app.views import GenerateAssetView, GenerateBulkAssetView
 
 urlpatterns = [
     path('generate/<str:asset_description>/',
