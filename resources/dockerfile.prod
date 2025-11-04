@@ -1,31 +1,32 @@
 # Production Dockerfile
-FROM python:3.11-slim
+FROM python:3.11-slim-bullseye
 # Set environment variables for Python
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DJANGO_SETTINGS_MODULE=twenty_one_tech_pocs.settings \
     PYTHONPATH=/app
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    libmagic1 \
-    curl \
-    git \
+# Update package lists and install dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        libmagic1 \
+        curl \
+        git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 # Set the working directory
 WORKDIR /app
 # Copy and install Python requirements
 COPY resources/requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 # Copy the application code
 COPY twenty_one_tech_pocs/ ./twenty_one_tech_pocs/
 COPY resources/ ./resources/
 # Create a non-root user
-RUN adduser --disabled-password --gecos '' appuser && \
-    chown -R appuser:appuser /app
+RUN adduser --disabled-password --gecos '' appuser \
+    && chown -R appuser:appuser /app
 USER appuser
 # Change to Django project directory
 WORKDIR /app/twenty_one_tech_pocs
@@ -35,3 +36,14 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 # Use Gunicorn for production
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "twenty_one_tech_pocs.wsgi:application"]
+
+
+
+
+
+
+
+
+
+
+
