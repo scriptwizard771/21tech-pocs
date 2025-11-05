@@ -1,42 +1,41 @@
 name: CI/CD Build and Deploy to AWS EC2
+
 on:
   push:
     branches: [main, dev]
   workflow_dispatch:
+
 jobs:
   build:
 
-    name: Build Docker Image
+    name: Build and Push Django Docker Image
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build Docker image
+    - name: Build Django Docker image
       run: |
         echo "Building Django Docker image..."
-        docker build -t django_app:latest -f resources/dockerfile.prod .
-        docker save -o django_app.tar django_app:latest
-        chmod 644 django_app.tar
-        ls -lh django_app.tar
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest -f resources/dockerfile.prod .
 
-    - name: Copy Docker image to EC2
-      uses: appleboy/scp-action@v0.1.5
-      with:
-        host: ${{ secrets.AWS_HOST }}
-        username: ${{ secrets.AWS_USERNAME }}
-        key: ${{ secrets.AWS_PRIVATE_KEY }}
-        port: ${{ secrets.AWS_PORT }}
-        source: "django_app.tar"
-        target: "/home/${{ secrets.AWS_USERNAME }}/"
+    - name: Push Docker image
+      run: |
+        echo "Pushing Django Docker image to Docker Hub..."
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest
+
   deploy:
     name: Deploy Docker Compose on EC2
     runs-on: ubuntu-latest
     needs: build
+
     steps:
     - name: Deploy to EC2
       uses: appleboy/ssh-action@v1.1.0
@@ -46,14 +45,15 @@ jobs:
         key: ${{ secrets.AWS_PRIVATE_KEY }}
         port: ${{ secrets.AWS_PORT }}
         script: |
-          cd /home/${{ secrets.AWS_USERNAME }}
-          echo "Loading Docker image..."
-          docker load -i django_app.tar
-          echo "Stopping old containers..."
-          docker-compose -f /home/${{ secrets.AWS_USERNAME }}/21tech-pocs/resources/docker-compose.prod.yml down || true
-          echo "Starting new containers..."
-          docker-compose -f /home/${{ secrets.AWS_USERNAME }}/21tech-pocs/resources/docker-compose.prod.yml up -d --build
-        
-          echo "Current container status:"
-          docker-compose -f /home/${{ secrets.AWS_USERNAME }}/21tech-pocs/resources/docker-compose.prod.yml ps
+          cd /home/${{ secrets.AWS_USERNAME }}/21tech-pocs/resources
+          echo "Pulling latest Django image..."
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest
 
+          echo "Stopping old containers..."
+          docker-compose -f docker-compose.prod.yml down || true
+
+          echo "Starting new containers..."
+          docker-compose -f docker-compose.prod.yml up -d
+
+          echo "Current container status:"
+          docker-compose -f docker-compose.prod.yml ps

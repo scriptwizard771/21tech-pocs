@@ -1,4 +1,28 @@
 services:
+  django_app:
+    image: theumairdar/django_app:latest
+    container_name: django_app
+    env_file:
+      - ../.env
+    environment:
+      - ES_URL=http://elasticsearch:9200
+      - DJANGO_SETTINGS_MODULE=twenty_one_tech_pocs.settings
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ../twenty_one_tech_pocs:/app/twenty_one_tech_pocs
+      - static_volume:/app/twenty_one_tech_pocs/staticfiles
+      - media_volume:/app/twenty_one_tech_pocs/media
+      - temp_docs_volume:/app/twenty_one_tech_pocs/temp_documents
+    networks:
+      - tech
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
 
   nginx:
     image: nginx:alpine
