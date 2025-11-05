@@ -45,15 +45,27 @@ jobs:
         key: ${{ secrets.AWS_PRIVATE_KEY }}
         port: ${{ secrets.AWS_PORT }}
         script: |
-          cd /home/${{ secrets.AWS_USERNAME }}/21tech-pocs/resources
-          echo "Pulling latest Django image..."
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest
+          cd /home/${{ secrets.AWS_USERNAME }}
+          
+          # If repo exists, pull latest, else clone
+          if [ -d "21tech-pocs" ]; then
+            cd 21tech-pocs
+            git reset --hard
+            git pull
+          else
+            git clone https://github.com/<your-username>/21tech-pocs.git
+            cd 21tech-pocs
+          fi
+
+          echo "Loading Docker image..."
+          docker load -i ../django_app.tar
 
           echo "Stopping old containers..."
-          docker-compose -f docker-compose.prod.yml down || true
+          docker-compose -f resources/docker-compose.prod.yml down || true
 
           echo "Starting new containers..."
-          docker-compose -f docker-compose.prod.yml up -d
+          docker-compose -f resources/docker-compose.prod.yml up -d --build
 
           echo "Current container status:"
-          docker-compose -f docker-compose.prod.yml ps
+          docker-compose -f resources/docker-compose.prod.yml ps
+
