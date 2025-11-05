@@ -1,6 +1,6 @@
 services:
   django_app:
-    image: theumairdar/django_app:latest
+    image: ${DOCKERHUB_USERNAME:-your-dockerhub-username}/django_app:latest
     container_name: django_app
     env_file:
       - ../.env

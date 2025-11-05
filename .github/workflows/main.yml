@@ -21,10 +21,16 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+    - name: Clean Docker system
+      run: |
+        echo "Cleaning Docker system to avoid cache issues..."
+        docker system prune -f || true
+        docker builder prune -f || true
+
     - name: Build Django Docker image
       run: |
-        echo "Building Django Docker image..."
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest -f resources/dockerfile.prod . --no-cache
+        echo "Building Django Docker image with dockerfile..."
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest -f resources/dockerfile.prod . --no-cache --pull
 
     - name: Push Docker image
       run: |
@@ -51,20 +57,20 @@ jobs:
           if [ -d "21tech-pocs" ]; then
             cd 21tech-pocs
             git reset --hard
-            git pull
+            git pull origin ${{ github.ref_name }}
           else
-            git clone https://github.com/<your-username>/21tech-pocs.git
+            git clone https://github.com/scriptwizard771/21tech-pocs.git
             cd 21tech-pocs
           fi
 
-          echo "Loading Docker image..."
-          docker load -i ../django_app.tar
+          echo "Pulling latest Docker image from Docker Hub..."
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest
 
           echo "Stopping old containers..."
           docker-compose -f resources/docker-compose.prod.yml down || true
 
-          echo "Starting new containers..."
-          docker-compose -f resources/docker-compose.prod.yml up -d --build
+          echo "Starting new containers with pulled image..."
+          docker-compose -f resources/docker-compose.prod.yml up -d
 
           echo "Current container status:"
           docker-compose -f resources/docker-compose.prod.yml ps
