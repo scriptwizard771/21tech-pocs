@@ -8,7 +8,8 @@ ENV PYTHONUNBUFFERED=1 \
 # Install minimal system-level dependencies.
 # PyMuPDF is largely self-contained, so we don't need the extensive list
 # that was required for unstructured.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends --fix-missing \
     # For building some python packages
     gcc \
     g++ \
@@ -16,7 +17,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl \
     # For python-magic file type detection
     libmagic1 \
-    && rm -rf /var/lib/apt/lists/*
+    ca-certificates \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Set the working directory in the container
 WORKDIR /app
