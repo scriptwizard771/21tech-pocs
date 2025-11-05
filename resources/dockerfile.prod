@@ -1,32 +1,45 @@
 # Production Dockerfile
 FROM python:3.9-slim-bullseye
-# Set environment variables for Python
+
+# Environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DJANGO_SETTINGS_MODULE=twenty_one_tech_pocs.settings
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
-    libmagic1 \
+    libmagic-dev \
+    file \
+    curl \
     && rm -rf /var/lib/apt/lists/*
-# Set the working directory
+
+# Set working directory
 WORKDIR /app
-# Copy and install Python requirements
+
+# Copy and install Python requirements first to leverage Docker cache
 COPY resources/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-# Copy the application code
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
 COPY twenty_one_tech_pocs/ ./twenty_one_tech_pocs/
 COPY resources/ ./resources/
-# Set Django settings module and working directory
-WORKDIR /app/twenty_one_tech_pocs
-# Create a non-root user
+
+# Create non-root user and set permissions
 RUN adduser --disabled-password --gecos '' appuser && \
     chown -R appuser:appuser /app
 USER appuser
+
+# Set working directory to Django project
+WORKDIR /app/twenty_one_tech_pocs
+
 # Collect static files
 RUN python manage.py collectstatic --noinput
-# Expose port
+
+# Expose the port Gunicorn will serve
 EXPOSE 8000
-# Use Gunicorn for production
+
+# Run Gunicorn for production
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "twenty_one_tech_pocs.wsgi:application"]
