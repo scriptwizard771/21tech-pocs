@@ -51,8 +51,9 @@ jobs:
           # If repo exists, pull latest, else clone
           if [ -d "21tech-pocs" ]; then
             cd 21tech-pocs
-            git reset --hard
-            git pull origin ${{ github.ref_name }}
+            git fetch origin ci_cd
+            git checkout ci_cd
+            git reset --hard origin/ci_cd
           else
             git clone https://github.com/scriptwizard771/21tech-pocs.git
             cd 21tech-pocs
