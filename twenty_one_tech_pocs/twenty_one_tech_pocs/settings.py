@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "54.219.76.120",
+    "0.0.0.0",
 ]
 
 
@@ -46,6 +47,8 @@ INSTALLED_APPS = [
     "corsheaders",
     'rest_framework',
     'django_extensions',
+
+
     'maintenance_assistant',
     'service_manuals_assistant',
     'safety_procedure_assistant', 
