@@ -2,7 +2,7 @@ name: CI/CD Build and Deploy to AWS EC2
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, ci_cd]
   workflow_dispatch:
 
 jobs:
@@ -21,16 +21,11 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Clean Docker system
-      run: |
-        echo "Cleaning Docker system to avoid cache issues..."
-        docker system prune -f || true
-        docker builder prune -f || true
-
     - name: Build Django Docker image
       run: |
         echo "Building Django Docker image with dockerfile..."
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest -f resources/dockerfile.prod . --no-cache --pull
+        cd resources/
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest -f dockerfile.prod ..
 
     - name: Push Docker image
       run: |
