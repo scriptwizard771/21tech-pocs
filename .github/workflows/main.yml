@@ -7,14 +7,13 @@ on:
 
 jobs:
   build:
+
     name: Build and Push Django Docker Image
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        ref: ci_cd
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
@@ -22,15 +21,15 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+
     - name: Build Django Docker image
       run: |
-        echo "Building Django Docker image..."
-        cd resources/
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest -f dockerfile.prod ..
+        echo "Building Django Docker image with dockerfile..."
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest -f resources/dockerfile.prod . --no-cache --pull
 
-    - name: Push Docker image to Docker Hub
+    - name: Push Docker image
       run: |
-        echo "Pushing Docker image to Docker Hub..."
+        echo "Pushing Django Docker image to Docker Hub..."
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest
 
   deploy:
@@ -39,30 +38,6 @@ jobs:
     needs: build
 
     steps:
-    - name: Checkout repo for deployment assets
-      uses: actions/checkout@v4
-      with:
-        ref: ci_cd
-
-    - name: Create .env file
-      run: |
-        echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .env
-        echo "AWS_HOST=${{ secrets.AWS_HOST }}" >> .env
-        echo "AWS_PORT=${{ secrets.AWS_PORT }}" >> .env
-        echo "AWS_USERNAME=${{ secrets.AWS_USERNAME }}" >> .env
-        echo "AWS_PRIVATE_KEY=${{ secrets.AWS_PRIVATE_KEY }}" >> .env
-        echo "HUGGINGFACE_API_KEY=${{ secrets.HUGGINGFACE_API_KEY }}" >> .env
-
-    - name: Upload .env file to EC2
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.AWS_HOST }}
-        username: ${{ secrets.AWS_USERNAME }}
-        key: ${{ secrets.AWS_PRIVATE_KEY }}
-        port: ${{ secrets.AWS_PORT }}
-        source: ".env"
-        target: "/home/${{ secrets.AWS_USERNAME }}/21tech-pocs/"
-
     - name: Deploy to EC2
       uses: appleboy/ssh-action@v1.1.0
       with:
@@ -72,25 +47,23 @@ jobs:
         port: ${{ secrets.AWS_PORT }}
         script: |
           cd /home/${{ secrets.AWS_USERNAME }}
-
-          # Pull or clone the repository
+          
+          # If repo exists, pull latest, else clone
           if [ -d "21tech-pocs" ]; then
             cd 21tech-pocs
-            git fetch origin ci_cd
-            git reset --hard origin/ci_cd
+            git reset --hard
+            git pull origin ${{ github.ref_name }}
           else
-            git clone -b ci_cd https://github.com/scriptwizard771/21tech-pocs.git
+            git clone https://github.com/scriptwizard771/21tech-pocs.git
             cd 21tech-pocs
           fi
 
-          echo "Pulling latest Docker image..."
+          echo "Pulling latest Docker image from Docker Hub..."
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest
 
-          echo "Stopping old containers..."
-          docker-compose -f resources/docker-compose.yml down
+          echo "Starting new containers with pulled image..."
+          docker-compose -f resources/docker-compose.prod.yml up -d
 
-          echo "Starting new containers with the latest image..."
-          docker-compose -f resources/docker-compose.yml up -d
+          echo "Current container status:"
+          docker-compose -f resources/docker-compose.prod.yml ps
 
-          echo "Deployment complete. Current container status:"
-          docker-compose -f resources/docker-compose.yml ps

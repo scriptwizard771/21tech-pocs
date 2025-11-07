@@ -1,6 +1,10 @@
 services:
   django_app:
-    image: theumairdar/django_app:latest
+    build: 
+      context: ..
+      dockerfile: resources/dockerfile.prod
+      args:
+        BUILDKIT_INLINE_CACHE: 1
     container_name: django_app
     env_file:
       - ../.env
