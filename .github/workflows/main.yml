@@ -14,6 +14,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        ref: ci_cd
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
@@ -48,16 +50,14 @@ jobs:
         script: |
           cd /home/${{ secrets.AWS_USERNAME }}
           
-          # If repo exists, pull latest, else clone
+          # Remove existing directory if it exists
           if [ -d "21tech-pocs" ]; then
-            cd 21tech-pocs
-            git fetch origin ci_cd
-            git checkout ci_cd
-            git reset --hard origin/ci_cd
-          else
-            git clone https://github.com/scriptwizard771/21tech-pocs.git
-            cd 21tech-pocs
+            rm -rf 21tech-pocs
           fi
+
+          # Clone specifically the ci_cd branch
+          git clone -b ci_cd https://github.com/scriptwizard771/21tech-pocs.git
+          cd 21tech-pocs
 
           echo "Pulling latest Docker image from Docker Hub..."
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest
