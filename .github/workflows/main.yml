@@ -7,7 +7,6 @@ on:
 
 jobs:
   build:
-
     name: Build and Push Django Docker Image
     runs-on: ubuntu-latest
 
@@ -21,15 +20,15 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-
     - name: Build Django Docker image
       run: |
-        echo "Building Django Docker image with dockerfile..."
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest -f resources/dockerfile.prod . --no-cache --pull
+        echo "Building Django Docker image..."
+        cd resources/
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest -f dockerfile.prod ..
 
-    - name: Push Docker image
+    - name: Push Docker image to Docker Hub
       run: |
-        echo "Pushing Django Docker image to Docker Hub..."
+        echo "Pushing Docker image to Docker Hub..."
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest
 
   deploy:
@@ -38,6 +37,9 @@ jobs:
     needs: build
 
     steps:
+    - name: Checkout repo for deployment assets
+      uses: actions/checkout@v4
+
     - name: Deploy to EC2
       uses: appleboy/ssh-action@v1.1.0
       with:
@@ -47,23 +49,24 @@ jobs:
         port: ${{ secrets.AWS_PORT }}
         script: |
           cd /home/${{ secrets.AWS_USERNAME }}
-          
-          # If repo exists, pull latest, else clone
+
+          # Pull or clone the repository
           if [ -d "21tech-pocs" ]; then
+            echo "Repository exists. Updating..."
             cd 21tech-pocs
-            git reset --hard
-            git pull origin ${{ github.ref_name }}
+            git fetch origin
+            git reset --hard origin/${{ github.ref_name }}
           else
-            git clone https://github.com/scriptwizard771/21tech-pocs.git
+            echo "Repository not found. Cloning fresh copy..."
+            git clone -b ${{ github.ref_name }} https://github.com/scriptwizard771/21tech-pocs.git
             cd 21tech-pocs
           fi
 
           echo "Pulling latest Docker image from Docker Hub..."
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/django_app:latest
 
-          echo "Starting new containers with pulled image..."
-          docker-compose -f resources/docker-compose.prod.yml up -d
+          echo "Starting updated containers using docker-compose.prod.yml..."
+          docker-compose -f resources/docker-compose.prod.yml up -d --build
 
-          echo "Current container status:"
+          echo "Deployment complete. Current container status:"
           docker-compose -f resources/docker-compose.prod.yml ps
-

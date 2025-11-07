@@ -1,30 +1,28 @@
 services:
-  twenty_one_tech_pocs:
-    build: .
+  django_app:
+    image: theumairdar/django_app:latest
     container_name: django_app
-    ports:
-      - "8001:8000" # HTTPS Django server on port 8001
     env_file:
       - ../.env
     environment:
       - ES_URL=http://elasticsearch:9200
-      # - OLLAMA_BASE_URL=http://ollama:11434
+      - DJANGO_SETTINGS_MODULE=twenty_one_tech_pocs.settings
     depends_on:
       - elasticsearch
-      # - ollama
     volumes:
-      - ../twenty_one_tech_pocs:/app
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver_plus --cert-file cert.pem --key-file key.pem 0.0.0.0:8000"
+      - ../twenty_one_tech_pocs:/app/twenty_one_tech_pocs
+      - static_volume:/app/twenty_one_tech_pocs/staticfiles
+      - media_volume:/app/twenty_one_tech_pocs/media
+      - temp_docs_volume:/app/twenty_one_tech_pocs/temp_documents
+    networks:
+      - tech
+    restart: unless-stopped
     deploy:
       resources:
         limits:
-          memory: 4G
-        reservations:
           memory: 2G
-    networks:
-      - tech
+        reservations:
+          memory: 512M
 
   elasticsearch:
     image: elasticsearch:8.14.3

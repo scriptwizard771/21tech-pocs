@@ -1,10 +1,6 @@
 services:
   django_app:
-    build: 
-      context: ..
-      dockerfile: resources/dockerfile.prod
-      args:
-        BUILDKIT_INLINE_CACHE: 1
+    image: theumairdar/django_app:latest
     container_name: django_app
     env_file:
       - ../.env
@@ -27,6 +23,7 @@ services:
           memory: 2G
         reservations:
           memory: 512M
+
 
   nginx:
     image: nginx:alpine
