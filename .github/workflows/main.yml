@@ -61,7 +61,7 @@ jobs:
         key: ${{ secrets.AWS_PRIVATE_KEY }}
         port: ${{ secrets.AWS_PORT }}
         source: ".env"
-        target: "/home/${{ secrets.AWS_USERNAME }}/21tech-pocs/.env"
+        target: "/home/${{ secrets.AWS_USERNAME }}/21tech-pocs/"
 
     - name: Deploy to EC2
       uses: appleboy/ssh-action@v1.1.0
